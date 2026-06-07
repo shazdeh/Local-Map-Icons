@@ -9,7 +9,6 @@ class LocalMapIcons extends MovieClip {
     public var LocalMapMenu:MovieClip;
 
     private var basePath:String = '../skse/plugins/LocalMapIcons/';
-    private var cache:Object;
 
     function LocalMapIcons() {
         LocalMapIcons.instance = this;
@@ -18,7 +17,6 @@ class LocalMapIcons extends MovieClip {
 	function onLoad() {
         WorldMap = _parent._parent.WorldMap;
         LocalMapMenu = WorldMap.LocalMapMenu;
-        cache = new Object();
         duckPunch();
     }
 
@@ -42,37 +40,26 @@ class LocalMapIcons extends MovieClip {
         if (markerData[markerData.length - 1] === undefined) return;
         // plus wait another frame so MovieClips are in place
         onEnterFrame = function() {
-            for (var i = 0; i < markerData.length; i++) {
-                var key = markerData[i]._label,
-                    result:Array = cache[key];
-                if (result === undefined) {
-                    var _result:String = _root.GetLocalMarkers(key);
-                    if (_result !== undefined && _result !== '') {
-                        result = _result.split(',');
-                    } else {
-                        result = new Array();
-                    }
-                    cache[key] = result;
-                }
-                if (result.length) {
-// skse.Log('Marker: ' + markerData[i]._label  + '; result: ' + result);
-                    replaceMarker(markerData[i].IconClip.iconHolder, result);
-                }
+            if (_root.LMI_data === undefined) {
+                _root.LMI_Compile();
+            }
+            for (var i = 0; i < _root.LMI_data.length; i++) {
+                replaceMarker(markerData[_root.LMI_data[i][0]].IconClip.iconHolder, _root.LMI_data[i]);
             }
             onEnterFrame = null;
         }
     }
 
     function replaceMarker(iconHolder:MovieClip, data:Array) {
-        if (Number(data[0]) !== NaN) {
+        if (Number(data[1]) !== NaN) {
             // when "name" is a number, it's pointing to an icon from map menu itself
-            iconHolder.icon.gotoAndStop(parseInt(data[0]));
+            iconHolder.icon.gotoAndStop(parseInt(data[1]));
         } else {
             iconHolder.icon._visible = false;
             var mc = iconHolder.createEmptyMovieClip('newIcon', iconHolder.getNextHighestDepth()),
                 mcl:MovieClipLoader = new MovieClipLoader(),
-                targetFrame = parseInt(data[2]);
-            mc._xscale = mc._yscale = parseFloat(data[1]) * 100;
+                targetFrame = parseInt(data[3]);
+            mc._xscale = mc._yscale = parseFloat(data[2]) * 100;
             var listener:Object = {};
             listener.onLoadInit = function(target:MovieClip) {
                 if (targetFrame !== 1) {
@@ -82,15 +69,7 @@ class LocalMapIcons extends MovieClip {
                 target._x -= target._width / 2;
             };
             mcl.addListener(listener);
-            mcl.loadClip(basePath + data[0], mc);
+            mcl.loadClip(basePath + data[1], mc);
         }
-    }
-
-    function LogObject( obj ) {
-        var s = '';
-        for ( var i in obj ) {
-            s += i + ': ' + obj[i] + ';\n';
-        }
-        skse.Log(s);
     }
 }
