@@ -124,20 +124,20 @@ public:
                 auto teleportDoorHandle = ref->extraList.GetTeleportLinkedDoor();
                 if (!teleportDoorHandle) continue;
                 auto* teleportDoor = teleportDoorHandle.get().get();
-                if (auto* cell = teleportDoor->GetParentCell(); cell) {
-                    if (cell->IsExteriorCell()) {
-                        auto* world = teleportDoor->GetWorldspace();
-                        if (worldIcons.contains(world) || (!data.empty() && data.contains(world->GetFullName()))) {
-                            result.insert({i, worldIcons.at(world)});
-                        }
-                    } else {
-                        if (cellIcons.contains(cell)) {
-                            result.insert({i, cellIcons.at(cell)});
-                        } else if (!data.empty()) { // legacy search by marker._label
-                            if (auto location = cell->GetLocation(); location) {
-                                if (data.contains(location->GetFullName())) {
-                                    result.insert({i, data.at(location->GetFullName())});
-                                }
+                if (!teleportDoor) continue; // unnecessary I think?
+                auto* cell = teleportDoor->GetParentCell();
+                if (!cell || cell->IsExteriorCell()) {
+                    auto* world = teleportDoor->GetWorldspace();
+                    if (worldIcons.contains(world) || (!data.empty() && data.contains(world->GetFullName()))) {
+                        result.insert({i, worldIcons.at(world)});
+                    }
+                } else {
+                    if (cellIcons.contains(cell)) {
+                        result.insert({i, cellIcons.at(cell)});
+                    } else if (!data.empty()) { // legacy search by marker._label
+                        if (auto location = cell->GetLocation(); location) {
+                            if (data.contains(location->GetFullName())) {
+                                result.insert({i, data.at(location->GetFullName())});
                             }
                         }
                     }
